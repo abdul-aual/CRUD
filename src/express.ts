@@ -151,8 +151,62 @@ app.delete("/users/:id", async(req:Request, res:Response)=>{
             message: err.message
         })
     }
-})
+});
 
+
+
+//todo CRUD
+app.post("/todos", async(req:Request, res:Response)=>{
+    try{
+        const {user_id, title } = req.body;
+
+    // Check if user exists
+    const userCheck = await pool.query(`SELECT * FROM users WHERE id=$1`, [user_id]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User does not exist",
+      });
+      return
+    }
+        const result = await pool.query(`INSERT INTO todos(user_id, title) VALUES($1, $2) RETURNING *`, [user_id, title]);
+        res.status(201).json({
+            success:true,
+            message:"todos inserted successfully",
+            data: result.rows[0]
+        })
+    }catch(err:any){
+        res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+});
+
+//todos delete
+app.delete("/todos/:id", async(req:Request, res:Response)=>{
+    try{
+        const userId = req.params.id;
+        const result = await pool.query(`DELETE FROM todos WHERE id=$1`, [userId]);
+
+        if(result.rowCount===0){
+            res.status(404).json({
+                success:false,
+                message:"user not found"
+            })
+            return;
+        }
+        res.status(200).json({
+            success:true,
+            message:"user deleted successfully"
+        })
+    }catch(err:any){
+        res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+});
 
 
 
